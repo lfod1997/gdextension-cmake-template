@@ -1,0 +1,49 @@
+# Godot auto generated files
+*.gen.*
+**/gen/
+.godot/
+
+# IDE files
+.vscode/**
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/**
+
+# Outputs
+project/bin/**
+project/*.gdextension
+
+# Cmake
+**/build/
+**/cmake-build*/
+CMakeUserPresets.json
+
+# Generated compile_commands.json
+compile_commands.json
+
+# Artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+*.out
+*.app
+*.obj
+*.o
+*.a
+*.lib
+*.lo
+*.la
+*.pdb
+*.exp
+*.idb
+*.pyc
+*.class
+*.dblite
+
+# Misc
+.DS_Store
+*.log
+
+# Always keep .gitkeep (should be the last rule)
+!.gitkeep

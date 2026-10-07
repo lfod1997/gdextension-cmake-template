@@ -1,0 +1,19 @@
+[configuration]
+entry_symbol = "gdextension_cmake_template_init"
+compatibility_minimum = "4.5"
+reloadable = false
+
+[libraries]
+; Use relative paths for relocatability
+linux.x86_64.single.debug = "./bin/linux/gdext.linux.template_debug.x86_64.so"
+linux.x86_64.double.debug = "./bin/linux/gdext.linux.template_debug.x86_64.double.so"
+linux.x86_64.single.release = "./bin/linux/gdext.linux.template_release.x86_64.so"
+linux.x86_64.double.release = "./bin/linux/gdext.linux.template_release.x86_64.double.so"
+
+windows.x86_64.single.debug = "./bin/windows/gdext.windows.template_debug.x86_64.dll"
+windows.x86_64.double.debug = "./bin/windows/gdext.windows.template_debug.x86_64.double.dll"
+windows.x86_64.single.release = "./bin/windows/gdext.windows.template_release.x86_64.dll"
+windows.x86_64.double.release = "./bin/windows/gdext.windows.template_release.x86_64.double.dll"
+
+; TODO: You may want to provide binary for other platforms:
+; https://docs.godotengine.org/en/stable/engine_details/engine_api/gdextension/gdextension_file.html#libraries-section
