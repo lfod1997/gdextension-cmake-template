@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 
 # The project to copy the built artifacts into
-set(GODOT_PROJECT_DIR "project" CACHE PATH "Directory of a Godot project.")
+set(GODOT_PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/project" CACHE PATH "Directory of a Godot project. For addons, this should be its demo project; for in-house modules, this should be your Godot project.")
 
 # The minimal Godot version that you plan to support; if changed, modify the manifest accordingly
 set(GODOTCPP_API_VERSION 4.5)
@@ -9,16 +9,12 @@ set(GODOTCPP_API_VERSION 4.5)
 # Library name, must not be empty
 set(LIBNAME "gdext") # TODO: Change this name if needed, see README
 
-# If not empty, the project is considered an addon, artifacts will be copied to a standard path
+# If not empty, this CMake project is considered an addon, artifacts will be copied to a standard path
 set(ADDON "") # TODO: Change or remove this name, see README
 
 # Enforce C++ 17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-
-# Ensure tools
-find_program(PYTHON NAMES python python3 REQUIRED)
-execute_process(COMMAND ${PYTHON} --version)
 
 # Version-controlled Dependencies
 include(FetchContent)
@@ -39,7 +35,7 @@ FetchContent_MakeAvailable(godot-cpp)
 # When compiling for emscripten, this toolchain hack needs to be included
 # set(CMAKE_PROJECT_<project-name>_INCLUDE ${godot-cpp_SOURCE_DIR}/cmake/emsdkHack.cmake)
 
-# Include godot-cpp's CMake module path (for doc generation)
+# Include godot-cpp's main CMake module
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${godot-cpp_SOURCE_DIR}/cmake")
 include(GodotCPPModule)
 
@@ -61,6 +57,9 @@ else ()
     project("${LIBNAME}_cmake" LANGUAGES CXX)
 endif ()
 
+# Resolve find_package dependencies
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
+
 # TODO: If you have dependencies that require `find_package`, put them here
 
 # Main target
@@ -75,15 +74,13 @@ target_link_libraries(${LIBNAME}
 )
 set_target_properties(${LIBNAME}
     PROPERTIES
-    # Prevent MSVC from adding a Debug or Release subdir
-    RUNTIME_OUTPUT_DIRECTORY "$<1:${PROJECT_SOURCE_DIR}/bin/${GODOTCPP_PLATFORM}>"
-    # Godot does not use a "lib" prefix; uses a standardized suffix instead
+    # Godot does not use a "lib" prefix, they use a standardized suffix instead
     PREFIX ""
     OUTPUT_NAME "${LIBNAME}${GODOTCPP_SUFFIX}"
 )
 
 # Doc generation
-file(GLOB_RECURSE DOC_XML LIST_DIRECTORIES NO CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/doc_classes/*.xml")
+file(GLOB_RECURSE DOC_XML LIST_DIRECTORIES FALSE CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/doc_classes/*.xml")
 if (DOC_XML)
     if (GODOTCPP_TARGET MATCHES "editor|template_debug")
         target_doc_sources(${LIBNAME} "${DOC_XML}")
@@ -92,18 +89,19 @@ endif ()
 
 # Godot relies on a manifest (a .gdextension file) to load the correct binary
 if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${LIBNAME}.gdextension")
-    message(FATAL_ERROR "Missing manifest '${LIBNAME}.gdextension', make sure to create (or rename existing).")
+    message(FATAL_ERROR "Missing manifest '${LIBNAME}.gdextension', make sure to author (or rename and edit) this file.")
 endif ()
 
 # Post build: copy artifacts into configured Godot project
-if (ADDON)
-    set(GODOT_PROJECT_DIR "${PROJECT_SOURCE_DIR}/${GODOT_PROJECT_DIR}/addons/${ADDON}")
-else ()
-    set(GODOT_PROJECT_DIR "${PROJECT_SOURCE_DIR}/${GODOT_PROJECT_DIR}")
-endif ()
-set(GODOT_PROJECT_BINARY_DIR "${GODOT_PROJECT_DIR}/bin/${GODOTCPP_PLATFORM}")
-add_custom_command(
-    TARGET ${LIBNAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${LIBNAME}.gdextension" "${GODOT_PROJECT_DIR}"
-    COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${LIBNAME}>" "${GODOT_PROJECT_BINARY_DIR}/$<TARGET_FILE_NAME:${LIBNAME}>"
-)
+block()
+    if (ADDON)
+        set(_install_prefix "${GODOT_PROJECT_DIR}/addons/${ADDON}")
+    else ()
+        set(_install_prefix "${GODOT_PROJECT_DIR}")
+    endif ()
+    add_custom_command(
+        TARGET ${LIBNAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${LIBNAME}.gdextension" "${_install_prefix}"
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${LIBNAME}>" "${_install_prefix}/bin/${GODOTCPP_PLATFORM}/$<TARGET_FILE_NAME:${LIBNAME}>"
+    )
+endblock()

@@ -1,17 +1,12 @@
 # Godot auto generated files
 *.gen.*
 **/gen/
-.godot/
 
 # IDE files
 .vscode/**
 !.vscode/extensions.json
 !.vscode/launch.json
 .idea/**
-
-# Outputs
-project/bin/**
-project/*.gdextension
 
 # Cmake
 **/build/

@@ -4,7 +4,7 @@ Template project for GDExtension development with CMake.
 
 An alternative to the official [godot-cpp-template](https://github.com/godotengine/godot-cpp-template), **targeting Godot 4.3+ and godot-cpp 10**.
 
-## Quick Start
+## ~~Quick~~ Slow Start
 
 1. Do either of:
     1. Log in to GitHub and select "Use this template" at the top of the homepage of this repository
@@ -21,28 +21,35 @@ An alternative to the official [godot-cpp-template](https://github.com/godotengi
         set(ADDON "") # Or just delete this line
         ```
 3. Open the file src/register_types.cpp, rename the function `gdextension_cmake_template_init` to something else (the convention is to end with `_init`); we call it "the entry symbol"
-4. Modify gdext.gdextension ("the manifest"), check BOTH of:
+4. Modify gdext.gdextension ("the manifest"). Check BOTH of:
     1. If you changed `LIBNAME`, rename gdext.gdextension to "VALUE_OF_LIBNAME.gdextension" AND, in the file, search for "gdext" and replace with the value of `LIBNAME`
-    2. Change the value of `entry_symbol` to "the entry symbol"
-5. The CMake project is ready to be configured and built
+    2. Change the value of `entry_symbol` to "the entry symbol" invented in step 3
+5. The CMake project is ready to be configured
 
-You may need to relaunch your IDE (specifically CLion) after the first build.
+The default place to put the artifacts (the manifest and all binaries) is under **project/**: an empty folder (apart from Git config files) under which you may create a new Godot project:
 
-## Redirecting Artifacts
+1. Open the Godot editor
+2. At the Project Manager, select "Create"
+3. *First*, turn off the "Create Folder" switch
+4. Browse or enter the absolute path to the **project/** folder
+5. Select: "Version Control Metadata" \> "**None**"
+6. You can now build the CMake target "gdext", and see it loaded into the Godot project
 
-The default place to put the artifacts (the manifest and all the binaries) is under project/. You can instruct CMake to put elsewhere by adding the CMake config argument `GODOT_PROJECT_DIR`:
+Alternatively, you can instruct CMake to put the artifacts elsewhere, by changing the CMake config argument `GODOT_PROJECT_DIR`:
 
 ```
--DGODOT_PROJECT_DIR='path/to/your/game/project'
+-DGODOT_PROJECT_DIR='path/to/existing/godot/project'
 ```
 
-If you're using CLion, the argument can be passed to CMake by editing: Settings > "Build, Execution, Deployment" > "CMake" > (active profile) > "CMake options:".
+Reconfigure CMake project to make effect.
+
+> If you're using CLion, CMake config arguments can be modified in "Settings" \> "Build, Execution, Deployment" \> "CMake" \> (active profile) \> "CMake options:".
 
 ## Targeting a Godot Version
 
 The upstream has stated [in their README.md](https://github.com/godotengine/godot-cpp#versioning) that:
 
-> Starting with version 10.x, godot-cpp is versioned independently from Godot. Using the `api_version` parameter (see below), godot-cpp v10 can target Godot 4.3 or later.
+> Starting with version 10.x, godot-cpp is versioned independently of Godot. Using the `api_version` parameter (see below), godot-cpp v10 can target Godot 4.3 or later.
 
 "api_version" is a SCons setting; we'll need its CMake counterpart `GODOTCPP_API_VERSION`. This template targets 4.5, which you can change in the CMakeLists.txt:
 
@@ -52,13 +59,13 @@ set(GODOTCPP_API_VERSION 4.4) # Target Godot 4.4 and later
 
 If changed, the value assigned to `compatibility_minimum` in the manifest file also needs to change.
 
-## Adding CMake Packages
+## Adding Dependencies in CMake
 
-Other CMake packages may be added to the project like you would in a normal CMake project. The only thing to pay attention to, however, is where to put them.
+Other CMake modules may be added like you would in a normal CMake project.
 
 ### Using FetchContent
 
-If the package supports `FetchContent`, declared like:
+If the dependency supports `FetchContent`, declared like:
 
 ```cmake
 FetchContent_Declare(
@@ -69,12 +76,12 @@ FetchContent_Declare(
 )
 ```
 
-It's important that you put `FetchContent_MakeAvailable` of the package *after* `FetchContent_MakeAvailable(godot-cpp)`.
+It's important that you put `FetchContent_MakeAvailable` of the dependency *after* `FetchContent_MakeAvailable(godot-cpp)`.
 
 ### Adding a Subdirectory
 
-If the package is located in your project, you may want to use `add_subdirectory`. Make sure to put it *after* `FetchContent_MakeAvailable(godot-cpp)`.
+If there's a CMake module located in your project, you may want to `add_subdirectory`. Make sure to put it *after* `FetchContent_MakeAvailable(godot-cpp)`.
 
 ### Through Find-Package API
 
-If you need to call `find_package`, make sure to put it after project declaration (the `project(...)` call).
+If you need to `find_package`, make sure to put it *after* project declaration (the `project(...)` call).
